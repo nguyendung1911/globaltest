@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using SettlementBookingSystem.Application.Bookings.Dtos;
@@ -32,8 +32,6 @@ namespace SettlementBookingSystem.Application.Bookings.Commands
 
             var currentBookings = _memoryCache.Get<List<string>>("booking") ?? new List<string>();
 
-            int numberOfConflict = 0;
-
             if (currentBookings != null && currentBookings.Any())
             {
                 foreach (var booking in currentBookings)
@@ -42,12 +40,9 @@ namespace SettlementBookingSystem.Application.Bookings.Commands
                     var endBooking = startBooking.AddMinutes(59);
 
                     if (bookingTime >= startBooking && bookingTime <= endBooking)
-                        numberOfConflict++;
+                        throw new ConflictException("Conflict Booking");
                 }
             }
-
-            if (numberOfConflict >= 4)
-                throw new ConflictException("Conflict Booking");
 
             currentBookings.Add(bookingTime.TimeOfDay.ToString());
             _memoryCache.Set("booking", currentBookings);
